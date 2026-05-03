@@ -40,4 +40,4 @@ dist/
 *.keras
 
 # Temporary files
-*.tmp
+*.tmpdata/
