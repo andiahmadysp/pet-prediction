@@ -37,6 +37,7 @@ dist/
 *.h5
 *.pkl
 *.joblib
+*.keras
 
 # Temporary files
 *.tmp
