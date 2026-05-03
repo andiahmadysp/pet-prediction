@@ -11,7 +11,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLRO
 
 # Konfigurasi
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-img_size = (160, 160)
+img_size = (224, 224)
 batch_size = 32
 dataset_path = os.path.join(BASE_DIR, "data", "PetImages")
 model_path = os.path.join(BASE_DIR, "models", "best_model.keras")
@@ -54,7 +54,7 @@ val_data = val_datagen.flow_from_directory(
 base_model = MobileNetV2(
     weights="imagenet",
     include_top=False,
-    input_shape=(160, 160, 3)
+    input_shape=(224, 224, 3)
 )
 base_model.trainable = False
 
@@ -96,7 +96,7 @@ history1 = model.fit(
 # Fase 2: Fine-tuning
 print("Fase 2: Fine-tuning model...")
 base_model.trainable = True
-for layer in base_model.layers[:100]:
+for layer in base_model.layers[:80]:
     layer.trainable = False
 
 model.compile(

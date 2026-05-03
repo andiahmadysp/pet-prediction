@@ -11,7 +11,7 @@ import numpy as np
 app = Flask(__name__)
 
 MODEL_PATH = os.path.join("models", "best_model.keras")
-img_size = (160, 160)
+img_size = (224, 224)
 
 # Load model dengan fallback jika belum ada
 model = None
