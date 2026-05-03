@@ -61,6 +61,10 @@ function previewImage(event) {
 
     selectedFile = file;
 
+    //  RESET HASIL SETIAP PILIH GAMBAR BARU
+    document.getElementById("result").innerText = "Hasil: -";
+    document.getElementById("confidence").innerText = "Confidence: -";
+
     let reader = new FileReader();
 
     reader.onload = function(e) {
