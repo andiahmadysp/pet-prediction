@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cat vs Dog AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md text-center">
+
+        <h2 class="text-2xl font-bold mb-4">
+            Cat vs Dog AI Classifier
+        </h2>
+
+        <!-- INPUT FILE -->
+        <input
+            type="file"
+            id="imageInput"
+            accept="image/*"
+            class="w-full border p-2 rounded-lg mb-4"
+            onchange="previewImage(event)"
+        >
+
+        <!-- PREVIEW GAMBAR -->
+        <img
+            id="preview"
+            class="rounded-lg mx-auto shadow-md max-h-64 mb-4 hidden"
+        >
+
+        <!-- BUTTON -->
+        <button
+            onclick="predict()"
+            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
+        >
+            Prediksi
+        </button>
+
+        <hr class="my-4">
+
+        <!-- RESULT -->
+        <h3 id="result" class="text-xl font-semibold">
+            Hasil: -
+        </h3>
+
+        <p id="confidence" class="text-gray-600">
+            Confidence: -
+        </p>
+
+    </div>
+
+<script>
+
+let selectedFile = null;
+
+//  PREVIEW LANGSUNG SAAT PILIH FILE
+function previewImage(event) {
+    let file = event.target.files[0];
+
+    if (!file) return;
+
+    selectedFile = file;
+
+    let reader = new FileReader();
+
+    reader.onload = function(e) {
+        let img = document.getElementById("preview");
+        img.src = e.target.result;
+        img.classList.remove("hidden");
+    }
+
+    reader.readAsDataURL(file);
+}
+
+// PREDIKSI KE FLASK
+function predict() {
+    if (!selectedFile) {
+        alert("Pilih gambar dulu!");
+        return;
+    }
+
+    let formData = new FormData();
+    formData.append("image", selectedFile);
+
+    fetch("/predict", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        document.getElementById("result").innerText =
+            "Hasil: " + data.prediction;
+
+        document.getElementById("confidence").innerText =
+            "Confidence: " + data.confidence + "%";
+    })
+    .catch(err => console.error(err));
+}
+
+</script>
+
+</body>
+</html>

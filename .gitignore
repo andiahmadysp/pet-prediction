@@ -1,0 +1,42 @@
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# VS Code
+.vscode/
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build files
+build/
+dist/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# SQLite database (kalau ada)
+*.db
+
+# Model files (opsional, kalau besar)
+*.h5
+*.pkl
+*.joblib
+
+# Temporary files
+*.tmp
