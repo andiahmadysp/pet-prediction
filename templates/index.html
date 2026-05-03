@@ -1,107 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Cat vs Dog AI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klasifikasi Kucing vs Anjing</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-neutral-50 text-neutral-800 min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md text-center">
+    <div class="bg-white border border-neutral-200 rounded-xl p-8 w-full max-w-md">
+        <div class="text-center mb-6">
+            <h1 class="text-xl font-semibold tracking-tight">Klasifikasi Gambar</h1>
+            <p class="text-sm text-neutral-500 mt-1">Unggah gambar kucing atau anjing untuk prediksi</p>
+        </div>
 
-        <h2 class="text-2xl font-bold mb-4">
-            Cat vs Dog AI Classifier
-        </h2>
+        <div class="space-y-4">
+            <label class="block">
+                <span class="text-sm font-medium text-neutral-700 mb-1 block">Pilih Gambar</span>
+                <input
+                    type="file"
+                    id="imageInput"
+                    accept="image/*"
+                    onchange="previewImage(event)"
+                    class="block w-full border border-neutral-100 text-sm text-neutral-600 file:mr-4 file:py-2 file:px-4 file:rounded-tl file:rounded-bl file:border-0 file:text-sm file:font-medium file:bg-neutral-100 file:text-neutral-700 hover:file:bg-neutral-200 cursor-pointer rounded-lg"
+                >
+            </label>
 
-        <!-- INPUT FILE -->
-        <input
-            type="file"
-            id="imageInput"
-            accept="image/*"
-            class="w-full border p-2 rounded-lg mb-4"
-            onchange="previewImage(event)"
-        >
+            <div id="previewContainer" class="hidden">
+                <img id="preview" class="w-full h-64 object-contain rounded-lg border border-neutral-100 bg-neutral-50">
+            </div>
 
-        <!-- PREVIEW GAMBAR -->
-        <img
-            id="preview"
-            class="rounded-lg mx-auto shadow-md max-h-64 mb-4 hidden"
-        >
+            <button
+                id="predictBtn"
+                onclick="predict()"
+                disabled
+                class="w-full py-2.5 px-4 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+                Prediksi
+            </button>
 
-        <!-- BUTTON -->
-        <button
-            onclick="predict()"
-            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
-        >
-            Prediksi
-        </button>
+            <div id="loading" class="hidden text-center py-4">
+                <div class="inline-block w-5 h-5 border-2 border-neutral-200 border-t-neutral-800 rounded-full animate-spin"></div>
+                <p class="text-xs text-neutral-500 mt-2">Memproses...</p>
+            </div>
 
-        <hr class="my-4">
-
-        <!-- RESULT -->
-        <h3 id="result" class="text-xl font-semibold">
-            Hasil: -
-        </h3>
-
-        <p id="confidence" class="text-gray-600">
-            Confidence: -
-        </p>
-
+            <div id="resultContainer" class="hidden text-center pt-2">
+                <p class="text-sm text-neutral-500">Hasil Prediksi</p>
+                <p id="result" class="text-2xl font-semibold mt-1">-</p>
+                <p id="confidence" class="text-sm text-neutral-500 mt-1">-</p>
+            </div>
+        </div>
     </div>
 
 <script>
+    let selectedFile = null;
 
-let selectedFile = null;
+    const imageInput = document.getElementById("imageInput");
+    const previewContainer = document.getElementById("previewContainer");
+    const preview = document.getElementById("preview");
+    const predictBtn = document.getElementById("predictBtn");
+    const loading = document.getElementById("loading");
+    const resultContainer = document.getElementById("resultContainer");
+    const resultText = document.getElementById("result");
+    const confidenceText = document.getElementById("confidence");
 
-//  PREVIEW LANGSUNG SAAT PILIH FILE
-function previewImage(event) {
-    let file = event.target.files[0];
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-    if (!file) return;
+        selectedFile = file;
+        predictBtn.disabled = false;
+        resultContainer.classList.add("hidden");
 
-    selectedFile = file;
-
-    //  RESET HASIL SETIAP PILIH GAMBAR BARU
-    document.getElementById("result").innerText = "Hasil: -";
-    document.getElementById("confidence").innerText = "Confidence: -";
-
-    let reader = new FileReader();
-
-    reader.onload = function(e) {
-        let img = document.getElementById("preview");
-        img.src = e.target.result;
-        img.classList.remove("hidden");
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            previewContainer.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
     }
 
-    reader.readAsDataURL(file);
-}
+    async function predict() {
+        if (!selectedFile) {
+            alert("Pilih gambar terlebih dahulu.");
+            return;
+        }
 
-// PREDIKSI KE FLASK
-function predict() {
-    if (!selectedFile) {
-        alert("Pilih gambar dulu!");
-        return;
+        predictBtn.disabled = true;
+        loading.classList.remove("hidden");
+        resultContainer.classList.add("hidden");
+
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+
+        try {
+            const response = await fetch("/predict", {
+                method: "POST",
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                resultText.textContent = data.prediction;
+                confidenceText.textContent = "Confidence: " + data.confidence + "%";
+                resultContainer.classList.remove("hidden");
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (err) {
+            alert("Terjadi kesalahan saat mengirim data.");
+        } finally {
+            loading.classList.add("hidden");
+            predictBtn.disabled = false;
+        }
     }
-
-    let formData = new FormData();
-    formData.append("image", selectedFile);
-
-    fetch("/predict", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        document.getElementById("result").innerText =
-            "Hasil: " + data.prediction;
-
-        document.getElementById("confidence").innerText =
-            "Confidence: " + data.confidence + "%";
-    })
-    .catch(err => console.error(err));
-}
-
 </script>
 
 </body>
