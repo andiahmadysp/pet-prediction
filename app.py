@@ -1,14 +1,26 @@
+import os
+import tempfile
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 from flask import Flask, render_template, request, jsonify
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import numpy as np
 
 app = Flask(__name__)
 
-# load model
-model = load_model("best_model.h5")
+MODEL_PATH = os.path.join("models", "best_model.keras")
+img_size = (160, 160)
 
-img_size = (128, 128)
+# Load model dengan fallback jika belum ada
+model = None
+if os.path.exists(MODEL_PATH):
+    model = load_model(MODEL_PATH)
+    print(f"Model {MODEL_PATH} berhasil dimuat.")
+else:
+    print(f"Peringatan: {MODEL_PATH} tidak ditemukan. Jalankan train_model.py terlebih dahulu.")
+
 
 @app.route("/")
 def home():
@@ -17,23 +29,36 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    try:
-        # ambil file dari request
-        file = request.files["image"]
+    if model is None:
+        return jsonify({
+            "status": 503,
+            "success": False,
+            "error": "Model belum tersedia. Jalankan train_model.py terlebih dahulu."
+        }), 503
 
-        # simpan sementara
-        filepath = "temp.jpg"
+    try:
+        file = request.files.get("image")
+        if not file or file.filename == "":
+            return jsonify({
+                "status": 400,
+                "success": False,
+                "error": "Tidak ada file yang diunggah."
+            }), 400
+
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+            filepath = tmp.name
         file.save(filepath)
 
-        # preprocessing image
-        img = load_img(filepath, target_size=img_size)
-        img = img_to_array(img)
-        img = np.expand_dims(img, axis=0) / 255.0
+        try:
+            img = load_img(filepath, target_size=img_size)
+            img = img_to_array(img)
+            img = np.expand_dims(img, axis=0)
+            img = preprocess_input(img)
 
-        # prediksi
-        pred = model.predict(img)[0][0]
+            pred = model.predict(img, verbose=0)[0][0]
+        finally:
+            os.remove(filepath)
 
-        # hasil
         if pred > 0.5:
             label = "Dog"
             confidence = float(pred)
