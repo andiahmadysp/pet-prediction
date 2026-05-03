@@ -1,14 +1,16 @@
-## 📦 Dependencies
+##  Dependencies
 
 Project ini menggunakan beberapa library Python berikut:
 
-### 🔧 Core Libraries
+
+###  Core Libraries
 - Flask (Web framework)
 - TensorFlow (Machine Learning)
 - NumPy (Numerical computing)
 - Pillow (Image processing)
 
-### ⚙️ Supporting Libraries (auto-installed)
+
+###  Supporting Libraries (auto-installed)
 Library berikut akan terinstall otomatis saat install TensorFlow:
 - Keras
 - h5py
@@ -19,7 +21,7 @@ Library berikut akan terinstall otomatis saat install TensorFlow:
 
 ---
 
-## 🚀 Installation
+##  Installation
 
 Install semua dependencies:
 
